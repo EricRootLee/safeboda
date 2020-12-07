@@ -16,7 +16,8 @@
 package com.safeboda.core.di
 
 import com.apollographql.apollo.ApolloClient
-import com.readystatesoftware.chuck.ChuckInterceptor
+import com.chuckerteam.chucker.api.ChuckerCollector
+import com.chuckerteam.chucker.api.ChuckerInterceptor
 import com.safeboda.core.BuildConfig
 import com.safeboda.core.data.remote.UserOrganizationRepository
 import com.safeboda.core.network.AuthInterceptor
@@ -37,13 +38,18 @@ val networkingModule: Module = module(override = true) {
             else -> HttpLoggingInterceptor.Level.BODY
         }
 
-        val chuckInterceptor = ChuckInterceptor(androidContext()).showNotification(true)
+        val chuckerInterceptor = ChuckerInterceptor.Builder(androidContext())
+            .collector(ChuckerCollector(androidContext()))
+            .maxContentLength(250000L)
+            .redactHeaders(emptySet())
+            .alwaysReadResponseBody(true)
+            .build()
 
         val authInterceptor = AuthInterceptor()
 
         OkHttpClient.Builder()
             .addInterceptor(interceptor)
-            .addInterceptor(chuckInterceptor)
+            .addInterceptor(chuckerInterceptor)
             .addInterceptor(authInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
